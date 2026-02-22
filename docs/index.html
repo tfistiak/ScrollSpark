@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ScrollSpark</title>
+  <link rel="stylesheet" href="../dist/scrollspark.css">
+  <style>
+    body { font-family: system-ui, sans-serif; line-height: 1.5; padding: 2rem; }
+    header { max-width: 800px; margin: 0 auto; }
+    pre { background: #f5f5f5; padding: 1rem; overflow-x: auto; }
+    code { font-family: monospace; }
+    .example { margin: 2rem 0; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>ScrollSpark</h1>
+    <p>A lightweight scroll-trigger animation library using <code>IntersectionObserver</code>.</p>
+    <p>Install via <code>npm install scrollspark</code> or include&nbsp;from a CDN:</p>
+    <pre><code>&lt;link rel="stylesheet" href="https://unpkg.com/scrollspark/dist/scrollspark.css"&gt;
+&lt;script src="https://unpkg.com/scrollspark/dist/scrollspark.umd.js"&gt;&lt;/script&gt;</code></pre>
+
+    <h2>Getting started</h2>
+    <p>Create an instance and register elements to animate:</p>
+    <pre><code>import ScrollSpark from 'scrollspark';
+
+const ss = ScrollSpark.init();
+
+// animate all elements with class "fade-me" using built-in effect
+ss.on('.fade-me', { animate: 'fade-up' });</code></pre>
+
+    <h2>Attribute API</h2>
+    <p>You can also use data attributes directly in your markup:</p>
+    <pre><code>&lt;div ss-animate="fade-up" ss-delay="200"&gt;Hello&lt;/div&gt;</code></pre>
+
+    <h2>Other helpers</h2>
+    <ul>
+      <li><code>ss.addClass(selector, className, options)</code></li>
+      <li><code>ss.stagger(selector, options)</code> – stagger siblings</li>
+      <li><code>ss.progress(selector, callback)</code> – receive scroll ratio</li>
+      <li><code>ss.trackNav(navSelector, activeClass)</code> – highlight links</li>
+    </ul>
+
+    <h2>Examples</h2>
+    <p>See the <a href="demo.html" target="_blank">full interactive demo</a> for more illustrations.</p>
+    <div class="example">
+      <h3>Fade-in</h3>
+      <div class="fade-me" ss-animate="fade">I appear on scroll!</div>
+    </div>
+
+    <footer>
+      <p>Version 2.0.0&nbsp;&middot;&nbsp;MIT License</p>
+    </footer>
+  </header>
+</body>
+</html>

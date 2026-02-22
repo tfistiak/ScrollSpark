@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ScrollSpark v2 — Scroll Trigger Library</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Clash+Display:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../dist/scrollspark.css">
+<style>
+/* DEMO PAGE STYLES (non-library) */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #060608;
+  --surface: #0e0e12;
+  --border: #1e1e26;
+  --border2: #2a2a38;
+  --accent: #7c6aff;
+  --accent-glow: rgba(124,106,255,0.2);
+  --yellow: #f5c842;
+  --green: #3fffa2;
+  --red: #ff5c7a;
+  --text: #e8e8f0;
+  --muted: #5a5a72;
+  --code-bg: #0a0a0e;
+}
+
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'JetBrains Mono', monospace;
+  line-height: 1.6;
+
+/* ═══════════════════════════════════════════════
+   DEMO PAGE STYLES
+   ═══════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #060608;
+  --surface: #0e0e12;
+  --border: #1e1e26;
+  --border2: #2a2a38;
+  --accent: #7c6aff;
+  --accent-glow: rgba(124,106,255,0.2);
+  --yellow: #f5c842;
+  --green: #3fffa2;
+  --red: #ff5c7a;
+  --text: #e8e8f0;
+  --muted: #5a5a72;
+  --code-bg: #0a0a0e;
+}
+
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'JetBrains Mono', monospace;
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+/* ── NAV ── */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1rem 3rem;
+  background: rgba(6,6,8,0.9);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  transition: border-color 0.3s;
+}
+.logo {
+  font-weight: 700; font-size: 1rem;
+  background: linear-gradient(135deg, var(--accent), var(--green));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  letter-spacing: -0.5px;
+}
+.nav-links {
+  display: flex; gap: 0.25rem; align-items: center;
+}
+.nav-links a {
+  color: var(--muted); text-decoration: none;
+  font-size: 0.72rem; padding: 0.4rem 0.9rem;
+  border: 1px solid transparent;
+  transition: color 0.2s, border-color 0.2s;
+}
+/* Active class added by ScrollSpark section tracking */
+.nav-links a.nav-active {
+  color: var(--accent);
+  border-color: var(--border2);
+}
+
+/* ── HERO ── */
+.hero {
+  min-height: 100vh;
+  display: flex; flex-direction: column; justify-content: flex-end;
+  padding: 8rem 3rem 5rem;
+  position: relative; overflow: hidden;
+}
+.hero-bg {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 60% 50% at 70% 30%, rgba(124,106,255,0.12) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 40% at 20% 70%, rgba(63,255,162,0.05) 0%, transparent 60%);
+}
+.hero-dots {
+  position: absolute; inset: 0;
+  background-image: radial-gradient(circle, #1e1e26 1px, transparent 1px);
+  background-size: 28px 28px;
+  opacity: 0.6;
+}
+.hero-content { position: relative; max-width: 800px; }
+.badge {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  border: 1px solid var(--border2); padding: 0.35rem 0.75rem;
+  font-size: 0.65rem; color: var(--muted); margin-bottom: 2rem;
+}
+.badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+h1 {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: clamp(2.5rem, 6vw, 5.5rem);
+  font-weight: 700; line-height: 1.0; letter-spacing: -2px;
+  margin-bottom: 1.5rem;
+}
+h1 .line { display: block; overflow: hidden; }
+h1 .accent { color: var(--accent); }
+h1 .green  { color: var(--green); }
+.hero-sub { font-size: 0.85rem; color: var(--muted); max-width: 480px; margin-bottom: 2.5rem; line-height: 1.8; }
+.btn {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  background: var(--accent); color: #fff;
+  font-family: inherit; font-size: 0.75rem; font-weight: 700;
+  padding: 0.75rem 1.5rem; border: none; cursor: pointer;
+  text-decoration: none;
+  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+  transition: background 0.2s, transform 0.15s;
+}
+.btn:hover { background: #9b8dff; transform: translateY(-1px); }
+.btn-ghost {
+  background: transparent; color: var(--muted);
+  border: 1px solid var(--border2); clip-path: none; margin-left: 1rem;
+}
+.btn-ghost:hover { color: var(--text); border-color: var(--border2); background: var(--surface); }
+
+/* ── SECTIONS ── */
+.section {
+  padding: 7rem 3rem;
+  max-width: 1100px; margin: 0 auto;
+}
+.section-tag {
+  font-size: 0.62rem; letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--accent); margin-bottom: 0.75rem;
+  display: flex; align-items: center; gap: 0.5rem;
+}
+.section-tag::after { content: ''; flex: 1; max-width: 40px; height: 1px; background: var(--accent); opacity: 0.4; }
+h2 {
+  font-size: clamp(1.8rem, 3vw, 2.8rem);
+  font-weight: 700; letter-spacing: -1px; margin-bottom: 1rem; line-height: 1.1;
+}
+.section-desc { color: var(--muted); font-size: 0.83rem; max-width: 520px; margin-bottom: 3rem; line-height: 1.8; }
+hr { border: none; border-top: 1px solid var(--border); }
+
+/* ── CODE BLOCKS ── */
+.code-wrap {
+  background: var(--code-bg); border: 1px solid var(--border);
+  margin: 1.5rem 0; overflow: hidden;
+}
+.code-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.6rem 1rem; border-bottom: 1px solid var(--border);
+  font-size: 0.62rem; color: var(--muted);
+}
+.code-dots { display: flex; gap: 0.35rem; }
+.code-dots span { width: 8px; height: 8px; border-radius: 50%; }
+.code-dots span:nth-child(1) { background: var(--red); }
+.code-dots span:nth-child(2) { background: var(--yellow); }
+.code-dots span:nth-child(3) { background: var(--green); }
+pre { padding: 1.25rem 1.5rem; font-size: 0.77rem; line-height: 1.8; overflow-x: auto; }
+.kw  { color: var(--accent); }
+.fn  { color: var(--green); }
+.str { color: var(--yellow); }
+.cm  { color: #3a3a52; font-style: italic; }
+.num { color: var(--red); }
+.at  { color: #f5c842; }
+.tag { color: #7ce4ff; }
+
+/* ── FEATURE GRID ── */
+.feat-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1px; background: var(--border); border: 1px solid var(--border);
+  margin: 2rem 0;
+}
+.feat {
+  background: var(--surface); padding: 1.75rem;
+  transition: background 0.2s;
+}
+.feat:hover { background: #121218; }
+.feat-icon { font-size: 1.4rem; margin-bottom: 1rem; }
+.feat-name { font-weight: 700; font-size: 0.85rem; margin-bottom: 0.4rem; color: var(--text); }
+.feat-desc { font-size: 0.72rem; color: var(--muted); line-height: 1.7; }
+
+/* ── DEMO SECTION ── */
+#demo {
+  background: var(--surface);
+  max-width: none; padding: 7rem 3rem;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+.demo-inner { max-width: 1100px; margin: 0 auto; }
+.demo-tabs {
+  display: flex; gap: 0; border: 1px solid var(--border);
+  margin-bottom: 3rem; width: fit-content;
+}
+.demo-tab {
+  padding: 0.6rem 1.25rem; font-family: inherit; font-size: 0.72rem;
+  background: transparent; border: none; color: var(--muted); cursor: pointer;
+  border-right: 1px solid var(--border); transition: all 0.2s;
+}
+.demo-tab:last-child { border-right: none; }
+.demo-tab.active { background: var(--accent); color: #fff; }
+.demo-panel { display: none; }
+.demo-panel.active { display: block; }
+
+/* Animation demo boxes */
+.anim-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 0.75rem; margin: 1rem 0 2rem;
+}
+.anim-box {
+  height: 100px; border: 1px solid var(--border);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 0.3rem; font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--muted); background: var(--bg); cursor: pointer;
+  transition: border-color 0.2s;
+}
+.anim-box:hover { border-color: var(--accent); }
+.anim-box-icon { font-size: 1.2rem; }
+
+/* Class toggle demo */
+.section-tracker-demo {
+  position: relative; border: 1px solid var(--border);
+  overflow: hidden;
+}
+.tracker-viewport {
+  height: 300px; overflow-y: scroll;
+  scroll-snap-type: y mandatory;
+}
+.tracker-section {
+  height: 300px; display: flex; align-items: center; justify-content: center;
+  flex-direction: column; gap: 1rem; scroll-snap-align: start;
+  border-bottom: 1px solid var(--border); font-size: 0.8rem;
+  transition: background 0.3s;
+}
+.tracker-section.in-view {
+  background: rgba(124,106,255,0.08);
+}
+.tracker-section .section-name {
+  font-size: 1.2rem; font-weight: 700; opacity: 0.3;
+  transition: opacity 0.3s, color 0.3s;
+}
+.tracker-section.in-view .section-name {
+  opacity: 1; color: var(--accent);
+}
+.tracker-section .class-badge {
+  font-size: 0.62rem; color: var(--muted);
+  border: 1px solid var(--border); padding: 0.2rem 0.5rem;
+  transition: border-color 0.3s, color 0.3s;
+}
+.tracker-section.in-view .class-badge {
+  border-color: var(--accent); color: var(--accent);
+}
+.tracker-instructions {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  background: rgba(6,6,8,0.8); padding: 0.75rem 1rem;
+  font-size: 0.65rem; color: var(--muted); text-align: center;
+  border-top: 1px solid var(--border);
+}
+
+/* Nav indicator */
+.nav-indicator {
+  display: flex; gap: 0.5rem; margin-bottom: 1.5rem;
+}
+.nav-indicator span {
+  padding: 0.3rem 0.75rem; border: 1px solid var(--border);
+  font-size: 0.65rem; color: var(--muted); transition: all 0.3s;
+}
+.nav-indicator span.active {
+  border-color: var(--accent); color: var(--accent);
+  background: rgba(124,106,255,0.1);
+}
+
+/* Progress demo */
+.progress-demo {
+  border: 1px solid var(--border); padding: 1.5rem;
+  margin: 1rem 0;
+}
+.progress-bar-wrap {
+  height: 4px; background: var(--border); margin-bottom: 0.75rem; overflow: hidden;
+}
+.progress-bar-fill {
+  height: 100%; background: linear-gradient(90deg, var(--accent), var(--green));
+  width: 0%; transition: width 0.1s linear;
+}
+.progress-label { font-size: 0.7rem; color: var(--muted); }
+.progress-label span { color: var(--green); }
+
+/* Stagger row */
+.stagger-row {
+  display: grid; grid-template-columns: repeat(5, 1fr);
+  gap: 0.75rem; margin: 1rem 0;
+}
+.stagger-item {
+  height: 80px; border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.7rem; color: var(--muted);
+}
+
+/* ── API TABLE ── */
+.api-table {
+  width: 100%; border-collapse: collapse;
+  font-size: 0.75rem; margin: 1.5rem 0;
+}
+.api-table th {
+  text-align: left; padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border2);
+  color: var(--muted); font-weight: 400; font-size: 0.65rem;
+  letter-spacing: 0.1em; text-transform: uppercase;
+}
+.api-table td {
+  padding: 0.9rem 1rem; border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+.api-table tr:last-child td { border-bottom: none; }
+.api-table td:first-child { color: var(--green); }
+.api-table td:nth-child(2) { color: var(--accent); font-size: 0.7rem; }
+.api-table td:nth-child(3) { color: var(--yellow); }
+.api-table td:nth-child(4) { color: var(--muted); line-height: 1.6; }
+.api-table tr:hover td { background: rgba(255,255,255,0.01); }
+
+/* ── LIVE COUNTER ── */
+.live-log {
+  border: 1px solid var(--border); background: var(--code-bg);
+  height: 120px; overflow-y: auto; padding: 0.75rem 1rem;
+  font-size: 0.68rem; margin-top: 1rem;
+}
+.log-entry { padding: 0.15rem 0; border-bottom: 1px solid #111; }
+.log-entry .log-time { color: var(--muted); margin-right: 0.5rem; }
+.log-entry .log-in  { color: var(--green); }
+.log-entry .log-out { color: var(--red); }
+
+/* ── FOOTER ── */
+footer {
+  padding: 2.5rem 3rem; border-top: 1px solid var(--border);
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 0.7rem; color: var(--muted);
+}
+footer a { color: var(--accent); text-decoration: none; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════
+     NAV (gets .scrolled class via ScrollSpark)
+═══════════════════════════════════ -->
+<nav id="main-nav" ss-section-class="scrolled" ss-section-threshold="0.01">
+  <div class="logo">ScrollSpark v2</div>
+  <div class="nav-links">
+    <a href="#features" data-section="features" class="nav-link">Features</a>
+    <a href="#usage" data-section="usage" class="nav-link">Usage</a>
+    <a href="#demo" data-section="demo" class="nav-link">Demo</a>
+    <a href="#api" data-section="api" class="nav-link">API</a>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════════
+     HERO
+═══════════════════════════════════ -->
+<div class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-dots"></div>
+  <div class="hero-content">
+    <div class="badge">
+      <span class="badge-dot"></span>
+      v2.0 — Now with section tracking & progress
+    </div>
+    <h1>
+      <span class="line" ss-animate="reveal-left" ss-delay="0">Scroll-driven</span>
+      <span class="line" ss-animate="reveal-left" ss-delay="120"><span class="accent">class triggers</span></span>
+      <span class="line" ss-animate="reveal-left" ss-delay="240">done <span class="green">right</span></span>
+    </h1>
+    <p class="hero-sub" ss-animate="fade-up" ss-delay="500">
+      Zero dependencies. Pure IntersectionObserver. Add classes, track sections, watch progress, stagger groups — all from HTML attributes.
+    </p>
+    <div ss-animate="fade-up" ss-delay="650">
+      <a href="#demo" class="btn">See Demo ↓</a>
+      <a href="#usage" class="btn btn-ghost">Read Docs</a>
+    </div>
+  </div>
+</div>
+
+<hr>
+
+<!-- ═══════════════════════════════════
+     FEATURES
+═══════════════════════════════════ -->
+<section class="section" id="features">
+  <div class="section-tag">features</div>
+  <h2 ss-animate="fade-up">Everything you need</h2>
+  <p class="section-desc" ss-animate="fade-up" ss-delay="80">Built on IntersectionObserver. No scroll listeners. No layout thrashing. No dependencies.</p>
+  <div class="feat-grid" ss-group="fade-up" ss-stagger="60">
+    <div class="feat">
+      <div class="feat-icon">🎯</div>
+      <div class="feat-name">Add Any Class</div>
+      <div class="feat-desc">Use <code>ss-class="active"</code> to toggle any CSS class when an element enters the viewport. Bring your own CSS.</div>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">🎨</div>
+      <div class="feat-name">12 Built-in Animations</div>
+      <div class="feat-desc">fade, fade-up/down/left/right, zoom, zoom-out, flip-x/y, blur, reveal-up, reveal-left. Zero extra CSS.</div>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">🗺️</div>
+      <div class="feat-name">Section Tracking</div>
+      <div class="feat-desc">Automatically adds a class to nav links when their target section is in view. One attribute on your nav.</div>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">📊</div>
+      <div class="feat-name">Scroll Progress</div>
+      <div class="feat-desc">Track how far the user has scrolled through an element as a 0–1 value. Animate progress bars, counters, anything.</div>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">🔁</div>
+      <div class="feat-name">Once or Repeat</div>
+      <div class="feat-desc">Trigger once and stop observing, or replay on every enter/leave with <code>ss-repeat</code>.</div>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">⚡</div>
+      <div class="feat-name">Stagger Groups</div>
+      <div class="feat-desc">Animate children in cascade with <code>ss-group</code> and <code>ss-stagger="80"</code>. Automatic nth-child delays.</div>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">📞</div>
+      <div class="feat-name">JS Callbacks</div>
+      <div class="feat-desc">Full programmatic API: onEnter, onLeave, onProgress hooks per element with complete control.</div>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">🔍</div>
+      <div class="feat-name">Custom Threshold & Margin</div>
+      <div class="feat-desc">Per-element threshold (0–1) and rootMargin for pixel-perfect trigger points.</div>
+    </div>
+  </div>
+</section>
+
+<hr>
+
+<!-- ═══════════════════════════════════
+     USAGE
+═══════════════════════════════════ -->
+<section class="section" id="usage">
+  <div class="section-tag">usage</div>
+  <h2 ss-animate="fade-up">Simple HTML attributes</h2>
+
+  <div ss-animate="fade-up" ss-delay="80">
+    <div class="code-wrap">
+      <div class="code-header">
+        <div class="code-dots"><span></span><span></span><span></span></div>
+        <span>Animate with built-in effects</span>
+      </div>
+      <pre><span class="cm">&lt;!-- Built-in animation effect --&gt;</span>
+&lt;<span class="tag">div</span> <span class="at">ss-animate</span>=<span class="str">"fade-up"</span>&gt;Fades up on scroll&lt;/<span class="tag">div</span>&gt;
+
+<span class="cm">&lt;!-- With delay (ms) --&gt;</span>
+&lt;<span class="tag">div</span> <span class="at">ss-animate</span>=<span class="str">"fade-left"</span> <span class="at">ss-delay</span>=<span class="str">"200"</span>&gt;Delayed fade&lt;/<span class="tag">div</span>&gt;
+
+<span class="cm">&lt;!-- Repeat every time it enters viewport --&gt;</span>
+&lt;<span class="tag">div</span> <span class="at">ss-animate</span>=<span class="str">"zoom"</span> <span class="at">ss-repeat</span>&gt;Repeating zoom&lt;/<span class="tag">div</span>&gt;
+
+<span class="cm">&lt;!-- Custom threshold (0–1, how much must be visible) --&gt;</span>
+&lt;<span class="tag">div</span> <span class="at">ss-animate</span>=<span class="str">"blur"</span> <span class="at">ss-threshold</span>=<span class="str">"0.5"</span>&gt;Half visible to trigger&lt;/<span class="tag">div</span>&gt;</pre>
+    </div>
+  </div>
+
+  <div ss-animate="fade-up" ss-delay="120">
+    <div class="code-wrap">
+      <div class="code-header">
+        <div class="code-dots"><span></span><span></span><span></span></div>
+        <span>Add any custom class</span>
+      </div>
+      <pre><span class="cm">&lt;!-- Toggle any class when in viewport --&gt;</span>
+&lt;<span class="tag">nav</span> <span class="at">ss-class</span>=<span class="str">"scrolled"</span>&gt;...&lt;/<span class="tag">nav</span>&gt;
+&lt;<span class="tag">section</span> <span class="at">ss-class</span>=<span class="str">"active highlighted"</span>&gt;...&lt;/<span class="tag">section</span>&gt;
+
+<span class="cm">&lt;!-- Remove class on leave (repeat mode) --&gt;</span>
+&lt;<span class="tag">div</span> <span class="at">ss-class</span>=<span class="str">"in-view"</span> <span class="at">ss-repeat</span>&gt;Toggles class on/off&lt;/<span class="tag">div</span>&gt;
+
+<span class="cm">&lt;!-- Add class + also add to a different target --&gt;</span>
+&lt;<span class="tag">section</span> <span class="at">ss-class</span>=<span class="str">"active"</span> <span class="at">ss-class-target</span>=<span class="str">"#sidebar"</span>&gt;...&lt;/<span class="tag">section</span>&gt;</pre>
+    </div>
+  </div>
+
+  <div ss-animate="fade-up" ss-delay="160">
+    <div class="code-wrap">
+      <div class="code-header">
+        <div class="code-dots"><span></span><span></span><span></span></div>
+        <span>Section tracking & stagger groups</span>
+      </div>
+      <pre><span class="cm">&lt;!-- Stagger children with cascading delay --&gt;</span>
+&lt;<span class="tag">ul</span> <span class="at">ss-group</span>=<span class="str">"fade-up"</span> <span class="at">ss-stagger</span>=<span class="str">"80"</span>&gt;
+  &lt;<span class="tag">li</span>&gt;First — 0ms delay&lt;/<span class="tag">li</span>&gt;
+  &lt;<span class="tag">li</span>&gt;Second — 80ms delay&lt;/<span class="tag">li</span>&gt;
+  &lt;<span class="tag">li</span>&gt;Third — 160ms delay&lt;/<span class="tag">li</span>&gt;
+&lt;/<span class="tag">ul</span>&gt;
+
+<span class="cm">&lt;!-- Auto active-class on nav links when section is in view --&gt;</span>
+&lt;<span class="tag">nav</span> <span class="at">ss-nav</span>=<span class="str">"nav-active"</span>&gt;
+  &lt;<span class="tag">a</span> <span class="at">href</span>=<span class="str">"#about"</span>&gt;About&lt;/<span class="tag">a</span>&gt;
+  &lt;<span class="tag">a</span> <span class="at">href</span>=<span class="str">"#work"</span>&gt;Work&lt;/<span class="tag">a</span>&gt;
+&lt;/<span class="tag">nav</span>&gt;
+
+<span class="cm">&lt;!-- Progress: fires onProgress(ratio) as user scrolls --&gt;</span>
+&lt;<span class="tag">section</span> <span class="at">ss-progress</span>=<span class="str">"my-progress"</span>&gt;...&lt;/<span class="tag">section</span>&gt;</pre>
+    </div>
+  </div>
+
+  <div ss-animate="fade-up" ss-delay="200">
+    <div class="code-wrap">
+      <div class="code-header">
+        <div class="code-dots"><span></span><span></span><span></span></div>
+        <span>JavaScript API</span>
+      </div>
+      <pre><span class="cm">// Initialize (auto-scans DOM for ss-* attributes)</span>
+<span class="kw">const</span> ss = <span class="fn">ScrollSpark</span>.<span class="fn">init</span>()
+
+<span class="cm">// Add trigger programmatically</span>
+ss.<span class="fn">on</span>(<span class="str">'.hero'</span>, {
+  animate: <span class="str">'fade-up'</span>,
+  delay: <span class="num">200</span>,
+  threshold: <span class="num">0.2</span>,
+  repeat: <span class="kw">false</span>,
+  onEnter(el) { console.<span class="fn">log</span>(<span class="str">'entered'</span>, el) },
+  onLeave(el) { console.<span class="fn">log</span>(<span class="str">'left'</span>, el) },
+})
+
+<span class="cm">// Add custom class toggle</span>
+ss.<span class="fn">addClass</span>(<span class="str">'section'</span>, <span class="str">'in-view'</span>, { repeat: <span class="kw">true</span> })
+
+<span class="cm">// Stagger a group</span>
+ss.<span class="fn">stagger</span>(<span class="str">'.card'</span>, { animate: <span class="str">'fade-up'</span>, stagger: <span class="num">100</span> })
+
+<span class="cm">// Track scroll progress through an element</span>
+ss.<span class="fn">progress</span>(<span class="str">'#about'</span>, (ratio) =&gt; {
+  progressBar.style.width = (ratio * <span class="num">100</span>) + <span class="str">'%'</span>
+})
+
+<span class="cm">// Track active nav section</span>
+ss.<span class="fn">trackNav</span>(<span class="str">'nav'</span>, <span class="str">'nav-active'</span>)
+
+<span class="cm">// Remove / destroy</span>
+ss.<span class="fn">off</span>(<span class="str">'.hero'</span>)
+ss.<span class="fn">destroy</span>()</pre>
+    </div>
+  </div>
+</section>
+
+<hr>
+
+<!-- ═══════════════════════════════════
+     DEMO
+═══════════════════════════════════ -->
+<section id="demo" style="max-width:none;padding:7rem 3rem;background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+  <div class="demo-inner">
+    <div class="section-tag">live demo</div>
+    <h2 ss-animate="fade-up">See it in action</h2>
+
+    <div class="demo-tabs">
+      <button class="demo-tab active" onclick="showTab('animations')">Animations</button>
+      <button class="demo-tab" onclick="showTab('class-toggle')">Class Toggle</button>
+      <button class="demo-tab" onclick="showTab('section-nav')">Section Nav</button>
+      <button class="demo-tab" onclick="showTab('progress')">Progress</button>
+      <button class="demo-tab" onclick="showTab('stagger')">Stagger</button>
+    </div>
+
+    <!-- ANIMATIONS TAB -->
+    <div class="demo-panel active" id="panel-animations">
+      <p style="font-size:0.75rem;color:var(--muted);margin-bottom:1.5rem;">Scroll past and back to replay. Each box uses a different built-in effect.</p>
+      <div class="anim-grid">
+        <div class="anim-box" ss-animate="fade-up" ss-repeat><div class="anim-box-icon">↑</div>fade-up</div>
+        <div class="anim-box" ss-animate="fade-down" ss-repeat><div class="anim-box-icon">↓</div>fade-down</div>
+        <div class="anim-box" ss-animate="fade-left" ss-repeat><div class="anim-box-icon">←</div>fade-left</div>
+        <div class="anim-box" ss-animate="fade-right" ss-repeat><div class="anim-box-icon">→</div>fade-right</div>
+        <div class="anim-box" ss-animate="zoom" ss-repeat><div class="anim-box-icon">🔍</div>zoom</div>
+        <div class="anim-box" ss-animate="zoom-out" ss-repeat><div class="anim-box-icon">🔭</div>zoom-out</div>
+        <div class="anim-box" ss-animate="flip-x" ss-repeat><div class="anim-box-icon">↕</div>flip-x</div>
+        <div class="anim-box" ss-animate="flip-y" ss-repeat><div class="anim-box-icon">↔</div>flip-y</div>
+        <div class="anim-box" ss-animate="blur" ss-repeat><div class="anim-box-icon">🌫</div>blur</div>
+        <div class="anim-box" ss-animate="reveal-up" ss-repeat><div class="anim-box-icon">🎭</div>reveal-up</div>
+        <div class="anim-box" ss-animate="reveal-left" ss-repeat><div class="anim-box-icon">🎬</div>reveal-left</div>
+        <div class="anim-box" ss-animate="fade" ss-repeat><div class="anim-box-icon">👻</div>fade</div>
+      </div>
+
+      <div style="font-size:0.72rem;color:var(--muted);margin-top:1.5rem;">Live trigger log:</div>
+      <div class="live-log" id="anim-log"></div>
+    </div>
+
+    <!-- CLASS TOGGLE TAB -->
+    <div class="demo-panel" id="panel-class-toggle">
+      <p style="font-size:0.75rem;color:var(--muted);margin-bottom:1.5rem;">Scroll inside the box — <code>in-view</code> class is added/removed as each section enters/leaves.</p>
+      <div class="section-tracker-demo">
+        <div class="tracker-viewport" id="tracker-vp">
+          <div class="tracker-section" id="ts1">
+            <div class="section-name">Section Alpha</div>
+            <div class="class-badge">.in-view not active</div>
+          </div>
+          <div class="tracker-section" id="ts2">
+            <div class="section-name">Section Beta</div>
+            <div class="class-badge">.in-view not active</div>
+          </div>
+          <div class="tracker-section" id="ts3">
+            <div class="section-name">Section Gamma</div>
+            <div class="class-badge">.in-view not active</div>
+          </div>
+          <div class="tracker-section" id="ts4">
+            <div class="section-name">Section Delta</div>
+            <div class="class-badge">.in-view not active</div>
+          </div>
+        </div>
+        <div class="tracker-instructions">↑ Scroll inside this box ↓</div>
+      </div>
+      <div class="code-wrap" style="margin-top:1.5rem;">
+        <div class="code-header">
+          <div class="code-dots"><span></span><span></span><span></span></div>
+          <span>The HTML used above</span>
+        </div>
+        <pre>&lt;<span class="tag">div</span> <span class="at">ss-class</span>=<span class="str">"in-view"</span> <span class="at">ss-repeat</span>&gt;Section Alpha&lt;/<span class="tag">div</span>&gt;
+&lt;<span class="tag">div</span> <span class="at">ss-class</span>=<span class="str">"in-view"</span> <span class="at">ss-repeat</span>&gt;Section Beta&lt;/<span class="tag">div</span>&gt;
+
+<span class="cm">/* Your CSS */</span>
+.<span class="fn">in-view</span> { background: <span class="str">rgba(124,106,255,0.08)</span>; }
+.<span class="fn">in-view</span> .section-name { opacity: <span class="num">1</span>; color: var(--accent); }</pre>
+      </div>
+    </div>
+
+    <!-- SECTION NAV TAB -->
+    <div class="demo-panel" id="panel-section-nav">
+      <p style="font-size:0.75rem;color:var(--muted);margin-bottom:1.5rem;">Nav links automatically get <code>nav-active</code> when their target section scrolls into view.</p>
+
+      <div class="nav-indicator" id="demo-nav">
+        <span data-section-link="demo-s1">Section 1</span>
+        <span data-section-link="demo-s2">Section 2</span>
+        <span data-section-link="demo-s3">Section 3</span>
+      </div>
+
+      <div style="height:240px;overflow-y:scroll;border:1px solid var(--border);" id="demo-scroll-area">
+        <div id="demo-s1" style="height:240px;display:flex;align-items:center;justify-content:center;font-size:0.85rem;border-bottom:1px solid var(--border);color:var(--muted)">
+          Section 1 content
+        </div>
+        <div id="demo-s2" style="height:240px;display:flex;align-items:center;justify-content:center;font-size:0.85rem;border-bottom:1px solid var(--border);color:var(--muted)">
+          Section 2 content
+        </div>
+        <div id="demo-s3" style="height:240px;display:flex;align-items:center;justify-content:center;font-size:0.85rem;color:var(--muted)">
+          Section 3 content
+        </div>
+      </div>
+
+      <div class="code-wrap" style="margin-top:1.5rem;">
+        <div class="code-header">
+          <div class="code-dots"><span></span><span></span><span></span></div>
+          <span>Section nav tracking</span>
+        </div>
+        <pre><span class="cm">&lt;!-- Nav: ss-nav adds active class to matching links --&gt;</span>
+&lt;<span class="tag">nav</span> <span class="at">ss-nav</span>=<span class="str">"nav-active"</span>&gt;
+  &lt;<span class="tag">a</span> <span class="at">href</span>=<span class="str">"#about"</span>&gt;About&lt;/<span class="tag">a</span>&gt;
+  &lt;<span class="tag">a</span> <span class="at">href</span>=<span class="str">"#work"</span>&gt;Work&lt;/<span class="tag">a</span>&gt;
+  &lt;<span class="tag">a</span> <span class="at">href</span>=<span class="str">"#contact"</span>&gt;Contact&lt;/<span class="tag">a</span>&gt;
+&lt;/<span class="tag">nav</span>&gt;
+
+<span class="cm">// Or JS:</span>
+ss.<span class="fn">trackNav</span>(<span class="str">'nav'</span>, <span class="str">'nav-active'</span>)</pre>
+      </div>
+    </div>
+
+    <!-- PROGRESS TAB -->
+    <div class="demo-panel" id="panel-progress">
+      <p style="font-size:0.75rem;color:var(--muted);margin-bottom:1.5rem;">Scroll through this page — the bar below tracks your progress through the whole document.</p>
+
+      <div class="progress-demo">
+        <div style="font-size:0.7rem;color:var(--muted);margin-bottom:0.75rem;">Page scroll progress:</div>
+        <div class="progress-bar-wrap">
+          <div class="progress-bar-fill" id="page-progress-bar"></div>
+        </div>
+        <div class="progress-label">Progress: <span id="page-progress-label">0%</span></div>
+      </div>
+
+      <div class="progress-demo" style="margin-top:1rem;">
+        <div style="font-size:0.7rem;color:var(--muted);margin-bottom:0.75rem;">This demo section progress:</div>
+        <div class="progress-bar-wrap">
+          <div class="progress-bar-fill" id="section-progress-bar" style="background:linear-gradient(90deg,var(--green),var(--yellow));"></div>
+        </div>
+        <div class="progress-label">Progress: <span id="section-progress-label">0%</span></div>
+      </div>
+
+      <div class="code-wrap" style="margin-top:1.5rem;">
+        <div class="code-header">
+          <div class="code-dots"><span></span><span></span><span></span></div>
+          <span>Progress tracking</span>
+        </div>
+        <pre><span class="cm">// Track scroll through entire page</span>
+ss.<span class="fn">progress</span>(<span class="kw">document</span>.body, (ratio) => {
+  bar.style.width = (ratio * <span class="num">100</span>) + <span class="str">'%'</span>
+})
+
+<span class="cm">// Track scroll through a specific element</span>
+ss.<span class="fn">progress</span>(<span class="str">'#about'</span>, (ratio) => {
+  counter.textContent = <span class="fn">Math.round</span>(ratio * <span class="num">100</span>) + <span class="str">'%'</span>
+})</pre>
+      </div>
+    </div>
+
+    <!-- STAGGER TAB -->
+    <div class="demo-panel" id="panel-stagger">
+      <p style="font-size:0.75rem;color:var(--muted);margin-bottom:1.5rem;">Children animate in cascade. Click Replay to reset.</p>
+
+      <div style="margin-bottom:0.75rem;font-size:0.7rem;color:var(--muted)">ss-group="fade-up" ss-stagger="100":</div>
+      <div class="stagger-row" id="stagger-demo-1" ss-group="fade-up" ss-stagger="100">
+        <div class="stagger-item" style="color:var(--accent)">01</div>
+        <div class="stagger-item" style="color:var(--green)">02</div>
+        <div class="stagger-item" style="color:var(--yellow)">03</div>
+        <div class="stagger-item" style="color:var(--red)">04</div>
+        <div class="stagger-item" style="color:#fff">05</div>
+      </div>
+
+      <div style="margin-bottom:0.75rem;margin-top:1.5rem;font-size:0.7rem;color:var(--muted)">ss-group="zoom" ss-stagger="60":</div>
+      <div class="stagger-row" id="stagger-demo-2" ss-group="zoom" ss-stagger="60">
+        <div class="stagger-item" style="color:var(--accent)">A</div>
+        <div class="stagger-item" style="color:var(--green)">B</div>
+        <div class="stagger-item" style="color:var(--yellow)">C</div>
+        <div class="stagger-item" style="color:var(--red)">D</div>
+        <div class="stagger-item" style="color:#fff">E</div>
+      </div>
+
+      <button class="btn btn-ghost" style="margin-top:1.5rem;" onclick="replayStagger()">↺ Replay</button>
+
+      <div class="code-wrap" style="margin-top:1.5rem;">
+        <div class="code-header">
+          <div class="code-dots"><span></span><span></span><span></span></div>
+          <span>Stagger syntax</span>
+        </div>
+        <pre>&lt;<span class="tag">ul</span> <span class="at">ss-group</span>=<span class="str">"fade-up"</span> <span class="at">ss-stagger</span>=<span class="str">"100"</span>&gt;
+  &lt;<span class="tag">li</span>&gt;0ms delay&lt;/<span class="tag">li</span>&gt;
+  &lt;<span class="tag">li</span>&gt;100ms delay&lt;/<span class="tag">li</span>&gt;
+  &lt;<span class="tag">li</span>&gt;200ms delay&lt;/<span class="tag">li</span>&gt;
+&lt;/<span class="tag">ul</span>&gt;
+
+<span class="cm">// Or JS:</span>
+ss.<span class="fn">stagger</span>(<span class="str">'.cards'</span>, {
+  animate: <span class="str">'fade-up'</span>,
+  stagger: <span class="num">100</span>,
+  threshold: <span class="num">0.1</span>,
+})</pre>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════
+     API
+═══════════════════════════════════ -->
+<section class="section" id="api">
+  <div class="section-tag">api reference</div>
+  <h2 ss-animate="fade-up">HTML Attributes</h2>
+  <table class="api-table" ss-animate="fade-up" ss-delay="80">
+    <thead>
+      <tr>
+        <th>Attribute</th><th>Type</th><th>Default</th><th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>ss-animate</td><td>string</td><td>—</td><td>Built-in effect name: fade, fade-up, fade-down, fade-left, fade-right, zoom, zoom-out, flip-x, flip-y, blur, reveal-up, reveal-left</td></tr>
+      <tr><td>ss-class</td><td>string</td><td>—</td><td>One or more space-separated class names to add when element enters viewport. Removed on leave if ss-repeat.</td></tr>
+      <tr><td>ss-class-target</td><td>CSS selector</td><td>—</td><td>Add the class to this element instead of (or in addition to) the trigger element.</td></tr>
+      <tr><td>ss-delay</td><td>number (ms)</td><td>0</td><td>Milliseconds to wait after entering viewport before activating.</td></tr>
+      <tr><td>ss-threshold</td><td>number 0–1</td><td>0.15</td><td>Fraction of element visible before trigger fires.</td></tr>
+      <tr><td>ss-margin</td><td>string</td><td>"0px"</td><td>rootMargin for IntersectionObserver. E.g. "-100px 0px" to trigger before entering view.</td></tr>
+      <tr><td>ss-repeat</td><td>boolean</td><td>false</td><td>If present, animation re-triggers and class is removed every time element leaves viewport.</td></tr>
+      <tr><td>ss-group</td><td>effect name</td><td>—</td><td>Applies effect to all direct children with staggered delays.</td></tr>
+      <tr><td>ss-stagger</td><td>number (ms)</td><td>80</td><td>Delay between each child in a ss-group.</td></tr>
+      <tr><td>ss-nav</td><td>class name</td><td>—</td><td>On a &lt;nav&gt; element: automatically adds class to links whose href target section is in view.</td></tr>
+      <tr><td>ss-progress</td><td>string (id)</td><td>—</td><td>Fires a named progress event (0–1) as user scrolls through the element.</td></tr>
+      <tr><td>ss-duration</td><td>number (ms)</td><td>700</td><td>Override animation duration via CSS var or this attribute.</td></tr>
+    </tbody>
+  </table>
+
+  <h2 ss-animate="fade-up" style="margin-top:3rem;">JavaScript API</h2>
+  <table class="api-table" ss-animate="fade-up" ss-delay="80">
+    <thead>
+      <tr>
+        <th>Method</th><th>Args</th><th>—</th><th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>ScrollSpark.init()</td><td>options?</td><td>—</td><td>Initialize, scan DOM for ss-* attributes, return instance.</td></tr>
+      <tr><td>ss.on()</td><td>selector, options</td><td>—</td><td>Add a scroll trigger programmatically. Options: animate, delay, threshold, repeat, onEnter, onLeave.</td></tr>
+      <tr><td>ss.addClass()</td><td>selector, class, options?</td><td>—</td><td>Toggle a CSS class when element enters/leaves viewport.</td></tr>
+      <tr><td>ss.stagger()</td><td>selector, options</td><td>—</td><td>Animate children in cascade. Options: animate, stagger, delay, threshold, repeat.</td></tr>
+      <tr><td>ss.progress()</td><td>selector, callback</td><td>—</td><td>Call callback(ratio: 0–1) as user scrolls through element.</td></tr>
+      <tr><td>ss.trackNav()</td><td>navSelector, activeClass</td><td>—</td><td>Highlight nav links when their target section is visible.</td></tr>
+      <tr><td>ss.off()</td><td>selector</td><td>—</td><td>Remove triggers from elements.</td></tr>
+      <tr><td>ss.refresh()</td><td>—</td><td>—</td><td>Re-scan DOM (use after dynamic content changes).</td></tr>
+      <tr><td>ss.destroy()</td><td>—</td><td>—</td><td>Disconnect all observers, clean up everything.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<footer>
+  <div>ScrollSpark v2.0 — Powered by IntersectionObserver</div>
+  <div style="color:var(--muted)">0 deps · ~3kb gzipped · <a href="#usage">Docs</a></div>
+</footer>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SCROLLSPARK v2 — THE LIBRARY
+     Copy everything between these comments into scrollspark.js
+═══════════════════════════════════════════════════════════ -->
+<script src="../dist/scrollspark.umd.js"></script>
+<!-- ═══════════════════════════════════
+     PAGE SCRIPTS (demo logic + init)
+═══════════════════════════════════ -->
+<script>
+// ── Init ScrollSpark ──────────────────────────────────────
+const ss = ScrollSpark.init();
+
+// ── Auto nav tracking for main page nav ──────────────────
+ss.trackNav('#main-nav .nav-links', 'nav-active');
+
+// ── Page progress bar ────────────────────────────────────
+ss.progress(document.body, ratio => {
+  document.getElementById('page-progress-bar').style.width = (ratio * 100) + '%';
+  document.getElementById('page-progress-label').textContent = Math.round(ratio * 100) + '%';
+});
+
+// ── Demo section progress ────────────────────────────────
+ss.progress('#demo', ratio => {
+  document.getElementById('section-progress-bar').style.width = (ratio * 100) + '%';
+  document.getElementById('section-progress-label').textContent = Math.round(ratio * 100) + '%';
+});
+
+// ── Animation log ─────────────────────────────────────────
+const animBoxes = document.querySelectorAll('#panel-animations .anim-box');
+const logEl = document.getElementById('anim-log');
+function addLog(el, dir) {
+  if (!logEl) return;
+  const eff = el.getAttribute('ss-animate') || '?';
+  const now = new Date().toLocaleTimeString('en',{hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const entry = document.createElement('div');
+  entry.className = 'log-entry';
+  entry.innerHTML = `<span class="log-time">${now}</span><span class="${dir==='enter'?'log-in':'log-out'}">${dir==='enter'?'▲ enter':'▼ leave'}</span> — <em>${eff}</em>`;
+  logEl.prepend(entry);
+}
+
+// Add callbacks to anim boxes
+animBoxes.forEach(el => {
+  ss.on(el, {
+    animate: el.getAttribute('ss-animate'),
+    repeat: el.hasAttribute('ss-repeat'),
+    onEnter: el => addLog(el, 'enter'),
+    onLeave: el => addLog(el, 'leave'),
+  });
+});
+
+// ── Class-toggle demo (inside scrolling container) ────────
+const trackerEls = document.querySelectorAll('.tracker-section');
+const trackerRoot = document.getElementById('tracker-vp');
+
+trackerEls.forEach(section => {
+  const badge = section.querySelector('.class-badge');
+  const updateBadge = () => {
+    badge.textContent = section.classList.contains('in-view')
+      ? '.in-view is ACTIVE ✓'
+      : '.in-view not active';
+  };
+
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        section.classList.add('in-view');
+      } else {
+        section.classList.remove('in-view');
+      }
+      updateBadge();
+    });
+  }, { root: trackerRoot, threshold: 0.5 });
+
+  obs.observe(section);
+});
+
+// ── Section nav demo ─────────────────────────────────────
+const demoScrollArea = document.getElementById('demo-scroll-area');
+const demoNavLinks = document.querySelectorAll('#demo-nav [data-section-link]');
+
+demoNavLinks.forEach(link => {
+  const id = link.getAttribute('data-section-link');
+  const sect = document.getElementById(id);
+  if (!sect) return;
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        demoNavLinks.forEach(l => l.classList.remove('active'));
+        link.classList.add('active');
+      }
+    });
+  }, { root: demoScrollArea, threshold: 0.6 });
+  obs.observe(sect);
+});
+
+// ── Tab switcher ─────────────────────────────────────────
+function showTab(name) {
+  document.querySelectorAll('.demo-tab').forEach((t,i) => {
+    const panels = ['animations','class-toggle','section-nav','progress','stagger'];
+    t.classList.toggle('active', panels[i] === name);
+  });
+  document.querySelectorAll('.demo-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+}
+
+// ── Stagger replay ───────────────────────────────────────
+function replayStagger() {
+  ['stagger-demo-1','stagger-demo-2'].forEach(id => {
+    const parent = document.getElementById(id);
+    if (!parent) return;
+    const staggerMs = parseInt(parent.getAttribute('ss-stagger')) || 100;
+    [...parent.children].forEach((child, i) => {
+      child.classList.remove('ss-visible');
+      setTimeout(() => child.classList.add('ss-visible'), 50 + i * staggerMs);
+    });
+  });
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,39 @@
+{
+  "name": "scrollspark",
+  "version": "2.0.0",
+  "description": "A lightweight scroll-trigger animation library for modern browsers.",
+  "keywords": [
+    "scroll",
+    "animation",
+    "intersectionobserver",
+    "scroll-trigger",
+    "scrollspark"
+  ],
+  "homepage": "https://your-domain-or-gh-pages/scrollspark",
+  "license": "MIT",
+  "main": "dist/scrollspark.cjs.js",
+  "module": "dist/scrollspark.esm.js",
+  "browser": "dist/scrollspark.umd.js",
+  "unpkg": "dist/scrollspark.umd.js",
+  "jsdelivr": "dist/scrollspark.umd.js",
+  "files": [
+    "dist/*",
+    "src/*",
+    "README.md",
+    "LICENSE"
+  ],
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "rollup -c && cp src/index.d.ts dist/",
+    "dev": "live-server docs --open=docs/index.html",
+    "prepublishOnly": "npm run build",
+    "test": "echo \"No tests configured\" && exit 0"
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^24.0.0",
+    "@rollup/plugin-node-resolve": "^15.0.0",
+    "@rollup/plugin-terser": "^0.4.0",
+    "live-server": "^1.2.2",
+    "rollup": "^3.0.0"
+  }
+}
