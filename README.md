@@ -1,5 +1,7 @@
 # ScrollSpark
 
+[![npm version](https://img.shields.io/npm/v/scrollspark.svg)](https://www.npmjs.com/package/scrollspark) [![license](https://img.shields.io/npm/l/scrollspark.svg)](LICENSE)
+
 A lightweight scroll-trigger animation utility using IntersectionObserver. Designed to be small, dependency-free and easy to integrate in modern web projects.
 
 ## Features
