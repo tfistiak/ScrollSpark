@@ -24,7 +24,7 @@
   ],
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "rollup -c && cp src/index.d.ts dist/",
+    "build": "rollup -c && cp src/index.d.ts dist/ && mkdir -p public && cp -R docs/* public/ && mkdir -p public/dist && cp -R dist/* public/dist/",
     "dev": "live-server docs --open=docs/index.html",
     "prepublishOnly": "npm run build",
     "test": "echo \"No tests configured\" && exit 0"
